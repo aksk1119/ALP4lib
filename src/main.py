@@ -12,14 +12,29 @@ if __name__ == "__main__":
     imgBlack = np.zeros([_alp.nSizeY, _alp.nSizeX])
     imgWhite = np.ones([_alp.nSizeY, _alp.nSizeX]) * (2**8 - 1)
     imgSeq = np.concatenate([imgBlack.ravel(), imgWhite.ravel()])
-    seq_id = _alp.SeqAlloc(nbImg=2, bitDepth=bitDepth)
-    _alp.SeqPut(SequenceId=seq_id, imgData=imgSeq)
-    _alp.SetTiming(seq_id, pictureTime=200000)
+    blackSeq = _alp.SeqAlloc(nbImg=1, bitDepth=bitDepth)
+    whiteSeq = _alp.SeqAlloc(nbImg=1, bitDepth=bitDepth)
+    _alp.SeqPut(SequenceId=blackSeq, imgData=imgBlack)
+    _alp.SeqPut(SequenceId=whiteSeq, imgData=imgWhite)
+    _alp.SetTiming(whiteSeq, pictureTime=200000)
 
-    _alp.SeqControl(alp.ALP_BIN_MODE, alp.ALP_BIN_NORMAL, seq_id)
+    _alp.SeqControl(alp.ALP_BIN_MODE, alp.ALP_BIN_NORMAL, whiteSeq)
+    _alp.SeqControl(alp.ALP_BIN_MODE, alp.ALP_BIN_NORMAL, blackSeq)
 
-    _alp.Run(seq_id)
-    time.sleep(5)
+    _alp.Run(whiteSeq)
+    # time.sleep(5)
+    _on = False
+    while True:
+        key = input("Press x for toggle:\n")[0]
+        if key == " ":
+            break
+        elif key == "x":
+            _on = not _on
+            print("_on", _on)
+            if _on:
+                _alp.Run(blackSeq)
+            else:
+                _alp.Run(whiteSeq)
 
     _alp.Halt()
     _alp.FreeSeq()
